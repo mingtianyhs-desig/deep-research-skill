@@ -3,6 +3,21 @@
 All notable changes to this skill are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: [SemVer](https://semver.org/)
 
+## [2.7.0] - 2026-10-28
+
+### Changed
+
+- **BREAKING**: 研究报告产出位置从 `~/Documents/[Topic]_Research_[YYYYMMDD]/` 改为相对当前工作目录的 `./research/[主题]_研究_[YYYYMMDD]/`。切换工作区时产出自动跟随，不再写入用户主目录或技能安装目录。
+- 目录名改用中文：主题段保留原文语言（英文主题保持英文，中文主题保持中文），其余部分为中文，日期固定 `YYYYMMDD`。
+- 移除 `~/.claude/research_output/` 内部 tracking 副本。续写状态文件 `continuation_state_*.json` 改为跟随报告所在目录，避免同一产物出现两个权威副本。
+- `research_engine.py` 的输出目录由 `Path.home()/".claude"/"research_output"` 改为 `Path.cwd()/"research"`，并新增 `--out-dir` 参数可覆盖默认值。
+
+### Added
+
+- `reference/report-assembly.md` 新增 `## Path Convention` 一节，明确相对路径约定、中文命名规则、路径非法字符处理与同名目录的 `_2` 后缀策略。
+- `SKILL.md` 输出契约新增 Path rule，说明所有路径相对当前工作目录且不额外镜像副本。
+- `.gitignore` 新增 `research/`，避免研究产出被误提交。
+
 ## [2.6.1] - 2026-10-01
 
 ### Changed

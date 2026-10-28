@@ -128,10 +128,12 @@ class ResearchState:
 class ResearchEngine:
     """Main research orchestration engine"""
 
-    def __init__(self, mode: ResearchMode = ResearchMode.STANDARD):
+    def __init__(self, mode: ResearchMode = ResearchMode.STANDARD, output_dir: Optional[Path] = None):
         self.mode = mode
         self.state: Optional[ResearchState] = None
-        self.output_dir = Path.home() / ".claude" / "research_output"
+        # Research output is written relative to the current working directory so it
+        # follows the workspace instead of leaking into the user's home directory.
+        self.output_dir = Path(output_dir) if output_dir else Path.cwd() / "research"
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
     def initialize_research(self, query: str) -> ResearchState:
@@ -558,11 +560,18 @@ Examples:
         help='Resume from saved state file'
     )
 
+    parser.add_argument(
+        '--out-dir',
+        type=str,
+        default=None,
+        help='Output directory for run state and report (default: ./research)'
+    )
+
     args = parser.parse_args()
 
     # Initialize engine
     mode = ResearchMode(args.mode)
-    engine = ResearchEngine(mode=mode)
+    engine = ResearchEngine(mode=mode, output_dir=args.out_dir)
 
     if args.resume:
         # Load previous state

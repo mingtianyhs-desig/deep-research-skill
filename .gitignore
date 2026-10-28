@@ -7,3 +7,6 @@ __pycache__/
 venv/
 dist/
 build/
+
+# Research output (written relative to the current working directory)
+research/

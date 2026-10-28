@@ -24,9 +24,12 @@ Extract 3-4 key quantitative findings for dashboard display at top.
 
 Use Python script:
 ```bash
-cd ~/.claude/skills/deep-research
+# Run from the skill package root, or use an absolute path to the script.
+# Do not assume the skill is installed at a fixed location.
 python scripts/md_to_html.py [markdown_report_path] --embed-images
 ```
+
+The report path argument is the one resolved in Phase 8.1 (`research/<主题>_研究_<YYYYMMDD>/...`), relative to the current working directory.
 
 **Script outputs two parts:**
 - **Part A ({{CONTENT}}):** All sections except Bibliography
