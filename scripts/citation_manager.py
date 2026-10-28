@@ -13,6 +13,16 @@ Source identity:
   canonical_locator = doi:..., arxiv:..., or normalized URL
 
 All state is append-only JSONL. No mutable citation numbers in state files.
+
+Run directory:
+  init-run resolves the run folder from the research topic when --out-dir is
+  omitted, so the location convention lives in code instead of in prose that
+  the caller has to remember:
+
+    <cwd>/research/<topic>_研究_<YYYYMMDD>/
+
+  resolve_run_dir() is the single authority for that name; other scripts and
+  validators should import it rather than re-implement the pattern.
 """
 
 import argparse
@@ -22,7 +32,87 @@ import os
 import re
 import sys
 from datetime import datetime, timezone
+from pathlib import Path
 from urllib.parse import urlparse, urlunparse
+
+
+# ---------------------------------------------------------------------------
+# Run directory convention
+# ---------------------------------------------------------------------------
+
+CONTAINER = 'research'
+SUFFIX = '研究'
+
+# Invalid on Windows, plus separators and shell metacharacters that make a
+# directory name awkward to quote anywhere.
+_ILLEGAL_CHARS = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
+_WHITESPACE = re.compile(r'\s+')
+_REPEATED_UNDERSCORE = re.compile(r'_+')
+_EDGE_JUNK = ' ._'
+# Matches `<topic>_研究_<YYYYMMDD>` with an optional _2/_3 collision suffix.
+RUN_DIR_RE = re.compile(rf'_{SUFFIX}_\d{{8}}(?:_\d+)?$')
+
+
+def slugify_topic(topic: str, max_length: int = 60) -> str:
+    """Turn a research topic into one safe path segment.
+
+    CJK, letters, digits and hyphens survive; whitespace and illegal characters
+    collapse to a single underscore. The topic is never translated — the folder
+    should stay recognisable to whoever asked the question.
+    """
+    text = _ILLEGAL_CHARS.sub('_', topic.strip())
+    text = _WHITESPACE.sub('_', text)
+    text = _REPEATED_UNDERSCORE.sub('_', text)
+    text = text.strip(_EDGE_JUNK)
+
+    if len(text) > max_length:
+        text = text[:max_length].rstrip(_EDGE_JUNK)
+
+    return text
+
+
+def resolve_run_dir(topic: str, base=None, date=None, create: bool = False) -> Path:
+    """Return the run directory for a topic, adding _2/_3 if the name is taken.
+
+    Two runs of the same topic on the same day must not share a directory: the
+    artifact files are append-only, so a shared folder would silently mix
+    evidence from two unrelated questions.
+    """
+    root = Path(base) if base is not None else Path.cwd()
+    slug = slugify_topic(topic) or 'untitled'
+    stamp = (date or datetime.now()).strftime('%Y%m%d')
+    folder = f'{slug}_{SUFFIX}_{stamp}'
+    target = root / CONTAINER / folder
+
+    if not create:
+        return target
+
+    candidate = target
+    index = 2
+    while candidate.exists():
+        candidate = root / CONTAINER / f'{folder}_{index}'
+        index += 1
+    candidate.mkdir(parents=True, exist_ok=True)
+    return candidate
+
+
+def check_run_dir(path) -> list[str]:
+    """Return the problems with a run directory, empty when it conforms."""
+    path = Path(path)
+    problems = []
+
+    if path.parent.name != CONTAINER:
+        problems.append(
+            f"run directory must sit inside a '{CONTAINER}/' folder, got '{path.parent.name}'"
+        )
+    if not RUN_DIR_RE.search(path.name):
+        problems.append(
+            f"run directory name must end with '_{SUFFIX}_<YYYYMMDD>', got '{path.name}'"
+        )
+    if not path.is_dir():
+        problems.append(f"run directory does not exist: {path}")
+
+    return problems
 
 
 # ---------------------------------------------------------------------------
@@ -103,9 +193,22 @@ def read_jsonl(path: str) -> list[dict]:
 # ---------------------------------------------------------------------------
 
 def cmd_init_run(args: argparse.Namespace) -> None:
-    """Create run_manifest.json and empty JSONL artifact files."""
-    out_dir = os.path.abspath(args.out_dir)
-    os.makedirs(out_dir, exist_ok=True)
+    """Create run_manifest.json and empty JSONL artifact files.
+
+    When --out-dir is omitted the run folder is resolved from the topic, so the
+    caller never has to hand-build `research/<topic>_研究_<YYYYMMDD>`.
+    """
+    if args.out_dir:
+        out_dir = os.path.abspath(args.out_dir)
+        os.makedirs(out_dir, exist_ok=True)
+    elif args.query:
+        out_dir = str(resolve_run_dir(args.query, create=True).resolve())
+    else:
+        print(
+            json.dumps({'error': 'pass --out-dir, or --query so the run folder can be resolved'}),
+            file=sys.stderr,
+        )
+        sys.exit(1)
 
     artifact_paths = {
         'sources': 'sources.jsonl',
@@ -267,7 +370,11 @@ def main() -> None:
 
     # init-run
     p_init = sub.add_parser('init-run', help='Create run manifest and empty artifact files')
-    p_init.add_argument('--out-dir', required=True, help='Output directory for the research run')
+    p_init.add_argument(
+        '--out-dir',
+        default=None,
+        help='Output directory; omit to resolve research/<topic>_研究_<YYYYMMDD> from --query',
+    )
     p_init.add_argument('--query', default='', help='Original research question')
     p_init.add_argument('--mode', default='standard', choices=['quick', 'standard', 'deep', 'ultradeep'])
 

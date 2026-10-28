@@ -99,7 +99,7 @@ class OutputLocationCheckTests(unittest.TestCase):
     def test_warning_points_at_resolver(self):
         validator = self._validator("random_place", nested_under_research=False)
         validator._check_output_location()
-        self.assertTrue(any("research_paths.py" in w for w in validator.warnings))
+        self.assertTrue(any("citation_manager.py" in w for w in validator.warnings))
 
 
 if __name__ == "__main__":

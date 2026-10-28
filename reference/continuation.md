@@ -18,7 +18,7 @@ Trigger auto-continuation when report exceeds 18,000 words in single run.
 
 ## Continuation State File
 
-**Location:** `[folder]/continuation_state_[report_id].json` — inside the run folder returned by `scripts/research_paths.py resolve`, next to the report. Keeping the state with the report means a continuation agent resolves everything from one directory, and the state travels with the workspace instead of leaking into a global home directory.
+**Location:** `[folder]/continuation_state_[report_id].json` — inside the run folder returned by `scripts/citation_manager.py init-run`, next to the report. Keeping the state with the report means a continuation agent resolves everything from one directory, and the state travels with the workspace instead of leaking into a global home directory.
 
 ```json
 {

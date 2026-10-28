@@ -7,6 +7,8 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from datetime import datetime
+from pathlib import Path
 
 SCRIPT = os.path.join(os.path.dirname(__file__), '..', 'scripts', 'citation_manager.py')
 
@@ -189,6 +191,88 @@ class TestCanonicalization(unittest.TestCase):
         canonicalize_locator = self.canonicalize
         result = canonicalize_locator('https://example.com/page/')
         self.assertFalse(result.endswith('/'))
+
+
+class TestRunDirectoryConvention(unittest.TestCase):
+    """The run folder name is resolved here, so it is tested here."""
+
+    @classmethod
+    def setUpClass(cls):
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'scripts'))
+        import citation_manager
+        cls.cm = citation_manager
+
+    def test_slug_collapses_whitespace(self):
+        self.assertEqual('PostgreSQL_vs_Supabase', self.cm.slugify_topic('PostgreSQL vs Supabase'))
+
+    def test_slug_keeps_cjk(self):
+        self.assertEqual('城市更新政策', self.cm.slugify_topic('城市更新政策'))
+
+    def test_slug_keeps_both_languages(self):
+        self.assertEqual('PostgreSQL_与_Supabase_对比', self.cm.slugify_topic('PostgreSQL 与 Supabase 对比'))
+
+    def test_slug_cannot_escape_container(self):
+        slug = self.cm.slugify_topic('../../etc/passwd')
+        self.assertNotIn('/', slug)
+        self.assertNotIn('\\', slug)
+        self.assertEqual('etc_passwd', slug)
+
+    def test_slug_strips_windows_illegal_chars(self):
+        slug = self.cm.slugify_topic('a<b>c:d"e|f?g*h')
+        for char in '<>:"|?*':
+            self.assertNotIn(char, slug)
+
+    def test_slug_truncates(self):
+        self.assertLessEqual(len(self.cm.slugify_topic('x' * 200)), 60)
+
+    def test_resolve_places_run_under_research(self):
+        with tempfile.TemporaryDirectory() as base:
+            path = self.cm.resolve_run_dir('quantum computing', base=base, date=datetime(2026, 10, 28))
+            self.assertEqual(Path(base) / 'research' / 'quantum_computing_研究_20261028', path)
+
+    def test_resolve_collision_adds_suffix(self):
+        with tempfile.TemporaryDirectory() as base:
+            first = self.cm.resolve_run_dir('topic', base=base, date=datetime(2026, 10, 28), create=True)
+            second = self.cm.resolve_run_dir('topic', base=base, date=datetime(2026, 10, 28), create=True)
+            self.assertEqual('topic_研究_20261028', first.name)
+            self.assertEqual('topic_研究_20261028_2', second.name)
+
+    def test_check_accepts_conforming_dir(self):
+        with tempfile.TemporaryDirectory() as base:
+            run_dir = Path(base) / 'research' / 'topic_研究_20261028'
+            run_dir.mkdir(parents=True)
+            self.assertEqual([], self.cm.check_run_dir(run_dir))
+
+    def test_check_rejects_missing_container(self):
+        with tempfile.TemporaryDirectory() as base:
+            run_dir = Path(base) / 'topic_研究_20261028'
+            run_dir.mkdir()
+            problems = self.cm.check_run_dir(run_dir)
+            self.assertTrue(any('research/' in p for p in problems))
+
+    def test_check_rejects_english_suffix(self):
+        with tempfile.TemporaryDirectory() as base:
+            run_dir = Path(base) / 'research' / 'topic_Research_20261028'
+            run_dir.mkdir(parents=True)
+            self.assertTrue(any('研究' in p for p in self.cm.check_run_dir(run_dir)))
+
+    def test_init_run_resolves_dir_from_query(self):
+        with tempfile.TemporaryDirectory() as base:
+            cwd = os.getcwd()
+            os.chdir(base)
+            try:
+                out = run_cm('init-run', '--query', '城市更新政策', '--mode', 'standard')
+            finally:
+                os.chdir(cwd)
+            self.assertTrue(out['dir'].endswith(os.path.join('research', '城市更新政策_研究_' + datetime.now().strftime('%Y%m%d'))))
+            self.assertTrue(os.path.isdir(out['dir']))
+
+    def test_init_run_requires_dir_or_query(self):
+        result = subprocess.run(
+            [sys.executable, SCRIPT, 'init-run'],
+            capture_output=True, text=True,
+        )
+        self.assertNotEqual(0, result.returncode)
 
 
 if __name__ == '__main__':

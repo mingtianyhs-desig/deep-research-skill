@@ -58,7 +58,7 @@ Key features:
 
 ## Output
 
-Reports saved to `./research/[主题]_研究_[日期]/`, relative to the current working directory — switch workspaces and the output follows. The folder is created by `scripts/research_paths.py`:
+Reports saved to `./research/[主题]_研究_[日期]/`, relative to the current working directory — switch workspaces and the output follows. The folder is created by `scripts/citation_manager.py`:
 - Markdown (primary source of truth)
 - `open_source_solutions.jsonl` for applicable software/tooling research
 - `figures/` with EXIF-stripped photos, charts and diagrams referenced from the Markdown
@@ -75,7 +75,7 @@ Reports >18K words auto-continue via recursive agent spawning with context prese
 - Full bibliography with URLs, no placeholders
 - GitHub plus other relevant forge coverage and a shareable repository comparison for implementation/tooling topics
 - Captioned, sourced figures meeting the mode minimum
-- Automated validation: `validate_report.py` (10 checks, including figures) + `verify_citations.py` (DOI/URL/hallucination detection)
+- Automated validation: `validate_report.py` (structure, citations, figures, output location) + `verify_citations.py` (DOI/URL/hallucination detection)
 - Validation loop: validate &rarr; fix &rarr; retry (max 3 cycles)
 
 ## Search Tools
@@ -106,14 +106,18 @@ deep-research/
 │   ├── report_template.md            # Report structure template
 │   └── mckinsey_report_template.html # HTML report template
 ├── scripts/
-│   ├── validate_report.py            # 9-check structure validator
+│   ├── citation_manager.py           # Run directory resolution, source identity, run manifest
+│   ├── evidence_store.py             # Append-only evidence persistence
+│   ├── extract_claims.py             # Atomic claim extraction and ledger
+│   ├── validate_report.py            # Structure validator
 │   ├── verify_citations.py           # DOI/URL/hallucination checker
+│   ├── verify_claim_support.py       # Claim-support verification
 │   ├── source_evaluator.py           # Source credibility scoring
-│   ├── citation_manager.py           # Citation tracking
 │   ├── validate_open_source_solutions.py # Open-source artifact and report-link gate
+│   ├── validate_decision_guide.py    # Branching decision-guide gate
 │   ├── md_to_html.py                 # Markdown to HTML converter
 │   ├── verify_html.py                # HTML verification
-│   └── research_engine.py            # Core orchestration engine
+│   └── research_engine.py            # Phase instruction templates and state scaffold
 └── tests/
     └── fixtures/                     # Test report fixtures
 ```
@@ -122,7 +126,7 @@ deep-research/
 
 | Version | Date | Changes |
 |---------|------|---------|
-| 2.7.0 | 2026-10-28 | Output paths are relative to the current working directory (`./research/[主题]_研究_[YYYYMMDD]/`); `scripts/research_paths.py` owns the convention; `validate_report.py` gained an Output Location check |
+| 2.7.0 | 2026-10-28 | Output paths are relative to the current working directory (`./research/[主题]_研究_[YYYYMMDD]/`); `scripts/citation_manager.py` owns the convention; `validate_report.py` gained an Output Location check |
 | 2.6.1 | 2026-10-01 | Pass the shared Skill validator: concise description with explicit Triggers, tag list, `lov-dev-blog` in `depends_on`, shared `user-profile/v1` Profile contract, composition record |
 | 2.6.0 | 2026-10-01 | Rich media contract: required figures by mode, `rich-media.md`, figure rendering with `--embed-images`, Figures validation check |
 | 2.5.3 | 2026-09-07 | Unified display name 「深度研究」 |

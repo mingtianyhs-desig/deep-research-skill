@@ -28,7 +28,7 @@ Use Python script:
 python scripts/md_to_html.py [markdown_report_path] --embed-images
 ```
 
-The report path is the one returned by `scripts/research_paths.py resolve` (`research/<主题>_研究_<YYYYMMDD>/...`).
+The report path is the one returned by `scripts/citation_manager.py init-run` (`research/<主题>_研究_<YYYYMMDD>/...`).
 
 **Script outputs two parts:**
 - **Part A ({{CONTENT}}):** All sections except Bibliography

@@ -27,7 +27,7 @@
 Resolve the run directory with the bundled resolver before writing anything:
 
 ```bash
-python scripts/research_paths.py resolve --topic "[research question]" --create
+python scripts/citation_manager.py init-run --query "[research question]"
 # {"status": "ok", "relative": "research/PostgreSQL_vs_Supabase_研究_20261028", ...}
 ```
 
@@ -43,7 +43,7 @@ The folder is relative to the current working directory, so switching workspaces
 
 ```bash
 # Resolve and create the run folder (relative to the current working directory)
-python scripts/research_paths.py resolve --topic "[research question]" --create
+python scripts/citation_manager.py init-run --query "[research question]"
 
 # Initialize markdown file with frontmatter inside that folder
 # Path: [folder]/research_report_[YYYYMMDD]_[slug].md
@@ -139,7 +139,7 @@ Source identity is stable across edits and continuation. Display numbers are der
 ## File Organization
 
 **1. Create dedicated folder:**
-- Run `python scripts/research_paths.py resolve --topic "[question]" --create` and use the returned path
+- Run `python scripts/citation_manager.py init-run --query "[question]"` and use the returned path
 - The resolver produces `research/[主题]_研究_[YYYYMMDD]/` relative to the current working directory
 
 **2. File naming convention:**

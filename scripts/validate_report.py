@@ -10,6 +10,11 @@ import sys
 from pathlib import Path
 from typing import List, Tuple, Dict
 
+# The run-directory naming rule is owned by citation_manager; import it instead
+# of copying the pattern so the gate and the resolver cannot drift apart.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from citation_manager import check_run_dir  # noqa: E402
+
 
 class ReportValidator:
     """Validates research report quality"""
@@ -312,24 +317,22 @@ class ReportValidator:
         fine, so without this check a misplaced run would pass silently and the
         next continuation agent would look in the wrong place.
 
+        The naming rule comes from citation_manager.check_run_dir rather than a
+        second copy of the pattern here: two copies drift, and then the gate and
+        the resolver disagree about what a valid folder looks like.
+
         This warns rather than errors: users legitimately validate a draft
         before the run folder exists, and a hard failure would block that.
         """
-        run_dir = self.report_path.parent
-        problems = []
-
-        if run_dir.name != "research" and run_dir.parent.name != "research":
-            problems.append("report is not inside a 'research/' folder")
-
-        if not re.search(r'_研究_\d{8}(_\d+)?$', run_dir.name):
-            problems.append(
-                f"run folder '{run_dir.name}' does not match '<topic>_研究_<YYYYMMDD>'"
-            )
+        problems = check_run_dir(self.report_path.parent)
+        # A missing folder is already reported as a broken path; only complain
+        # about the name here so the message stays actionable.
+        problems = [p for p in problems if not p.startswith("run directory does not exist")]
 
         if problems:
             self.warnings.append(
                 "; ".join(problems)
-                + ". Resolve the folder with: python scripts/research_paths.py resolve --topic \"...\" --create"
+                + ". Resolve the folder with: python scripts/citation_manager.py init-run --query \"...\""
             )
 
         return True
