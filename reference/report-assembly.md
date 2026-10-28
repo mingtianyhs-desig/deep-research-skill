@@ -22,22 +22,6 @@
 
 ---
 
-## Path Convention
-
-**All research output is written relative to the current working directory.** Never write to `~`, to the skill's install directory, or to any absolute path outside the working tree.
-
-```
-<current working directory>/research/<主题>_研究_<YYYYMMDD>/
-```
-
-- `research/` is the container. Keeping one container keeps the workspace root clean and makes the whole run trivially ignorable by git.
-- The topic segment keeps its original language: an English topic stays English (`PostgreSQL_vs_Supabase_研究_20261028`), a Chinese topic stays Chinese (`城市更新政策_研究_20261028`). Do not translate proper nouns; translation hurts later retrieval.
-- The rest of the folder name is Chinese, and the date is always `YYYYMMDD`.
-- Replace spaces and path-hostile characters in the topic with underscores. Keep CJK characters as they are — the bundled scripts handle UTF-8 paths correctly.
-- If a folder for the same topic and date already exists, append `_2`, `_3`, and so on instead of mixing two runs in one directory.
-
-The practical consequence: when the user switches workspaces, the output follows automatically. Resolve the folder once at Phase 8.1 and pass that same path to every script invocation.
-
 ## Progressive Section Generation
 
 **Core Strategy:** Generate and write each section individually using Write/Edit tools. This allows unlimited report length while keeping each generation manageable.
@@ -45,9 +29,8 @@ The practical consequence: when the user switches workspaces, the output follows
 ### Phase 8.1: Setup
 
 ```bash
-# Create folder relative to the current working directory
-# e.g. research/PostgreSQL_vs_Supabase_研究_20261028/
-mkdir -p research/[主题]_研究_[YYYYMMDD]
+# Create folder: ~/Documents/[TopicName]_Research_[YYYYMMDD]/
+mkdir -p ~/Documents/[folder_name]
 
 # Initialize markdown file with frontmatter
 # Path: [folder]/research_report_[YYYYMMDD]_[slug].md
@@ -69,8 +52,6 @@ python scripts/citation_manager.py init-run --out-dir [folder] --query "[questio
 # Creates: run_manifest.json, sources.jsonl, evidence.jsonl, claims.jsonl
 # For applicable software/tooling research, also create open_source_solutions.jsonl
 ```
-
-`[folder]` is the relative path from Phase 8.1, for example `research/PostgreSQL_vs_Supabase_研究_20261028`. Every later script call takes the same `--dir` / `--out-dir` value, so resolve it once and reuse it verbatim.
 
 **Register each source as you encounter it:**
 ```bash
@@ -145,8 +126,8 @@ Source identity is stable across edits and continuation. Display numbers are der
 ## File Organization
 
 **1. Create dedicated folder:**
-- Location: `research/[主题]_研究_[YYYYMMDD]/`, relative to the current working directory
-- Clean topic name (remove path-hostile characters, use underscores)
+- Location: `~/Documents/[TopicName]_Research_[YYYYMMDD]/`
+- Clean topic name (remove special chars, use underscores)
 
 **2. File naming convention:**
 All files use same base name:
@@ -154,7 +135,7 @@ All files use same base name:
 - `research_report_20251104_topic_slug.html`
 - `research_report_20251104_topic_slug.pdf`
 
-**3. Keep everything in that one folder.** The report, `sources.jsonl`, `evidence.jsonl`, `claims.jsonl`, `run_manifest.json`, and `figures/` all live together. Do not scatter copies to a second internal tracking directory: continuation agents and validators resolve artifacts from the report's own folder, and a second copy only creates ambiguity about which one is authoritative.
+**3. Also save copy to:** `~/.claude/research_output/` (internal tracking)
 
 ---
 

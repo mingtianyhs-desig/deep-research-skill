@@ -8,7 +8,7 @@ depends_on:
   - lov-dev-blog
 metadata:
   author: lovstudio
-  version: "2.7.0"
+  version: "2.6.1"
   tags:
     - deep-research
     - citations
@@ -150,7 +150,7 @@ Mode Selection
 - Bibliography (COMPLETE - every citation, no placeholders)
 - Methodology Appendix
 
-**Output files (all to `./research/[主题]_研究_[YYYYMMDD]/`, relative to the current working directory):**
+**Output files (all to `~/Documents/[Topic]_Research_[YYYYMMDD]/`):**
 - Markdown (primary source of truth)
 - `sources.jsonl` — stable source registry with canonical IDs
 - `evidence.jsonl` — append-only evidence store with quotes and locators
@@ -160,8 +160,6 @@ Mode Selection
 - `open_source_solutions.jsonl` — canonical repository registry for applicable implementation/tooling research; one verified repository per line
 - HTML (McKinsey style, self-contained with embedded figures, auto-opened)
 - PDF (professional print, auto-opened)
-
-**Path rule:** every path above is relative to the current working directory. Never write to `~`, to the skill install directory, or to any absolute path outside the working tree, so that switching workspaces moves the output with it. Keep the whole run in the single folder; do not also mirror it to a separate internal tracking directory. See [report-assembly.md](./reference/report-assembly.md#path-convention) for the folder naming rules.
 
 **Quality standards:**
 - 10+ sources, 3+ per major claim (cluster-independent, not just count)
