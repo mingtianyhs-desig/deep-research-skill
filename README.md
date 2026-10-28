@@ -1,6 +1,6 @@
 # 深度研究 · Deep Research
 
-![Version](https://img.shields.io/badge/version-2.6.1-CC785C)
+![Version](https://img.shields.io/badge/version-2.7.0-CC785C)
 
 Enterprise-grade research engine for Claude Code. Produces citation-backed reports with source credibility scoring, multi-provider search, and automated validation.
 
@@ -58,7 +58,7 @@ Key features:
 
 ## Output
 
-Reports saved to `~/Documents/[Topic]_Research_[Date]/`:
+Reports saved to `./research/[主题]_研究_[日期]/`, relative to the current working directory — switch workspaces and the output follows. The folder is created by `scripts/research_paths.py`:
 - Markdown (primary source of truth)
 - `open_source_solutions.jsonl` for applicable software/tooling research
 - `figures/` with EXIF-stripped photos, charts and diagrams referenced from the Markdown
@@ -122,6 +122,7 @@ deep-research/
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 2.7.0 | 2026-10-28 | Output paths are relative to the current working directory (`./research/[主题]_研究_[YYYYMMDD]/`); `scripts/research_paths.py` owns the convention; `validate_report.py` gained an Output Location check |
 | 2.6.1 | 2026-10-01 | Pass the shared Skill validator: concise description with explicit Triggers, tag list, `lov-dev-blog` in `depends_on`, shared `user-profile/v1` Profile contract, composition record |
 | 2.6.0 | 2026-10-01 | Rich media contract: required figures by mode, `rich-media.md`, figure rendering with `--embed-images`, Figures validation check |
 | 2.5.3 | 2026-09-07 | Unified display name 「深度研究」 |

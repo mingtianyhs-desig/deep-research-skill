@@ -3,6 +3,21 @@
 All notable changes to this skill are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: [SemVer](https://semver.org/)
 
+## [2.7.0] - 2026-10-28
+
+### Changed
+
+- **BREAKING**: 研究报告产出位置从 `~/Documents/[Topic]_Research_[YYYYMMDD]/` 改为相对当前工作目录的 `research/[主题]_研究_[YYYYMMDD]/`。切换工作区时产出自动跟随，不再写入用户主目录或技能安装目录。
+- 移除 `~/.claude/research_output/` 内部 tracking 副本。续写状态文件 `continuation_state_*.json` 改为跟随报告所在目录，避免同一产物出现两个权威副本。
+- `research_engine.py` 的输出目录由 `Path.home()/".claude"/"research_output"` 改为 `Path.cwd()/"research"`，并新增 `--out-dir` 参数可覆盖默认值。
+- 路径约定不再依赖文档描述，改由脚本承载；文档只保留调用方式。
+
+### Added
+
+- `scripts/research_paths.py`：运行目录的唯一权威。负责主题清洗（非法字符/路径分隔符转下划线、保留 CJK、长度截断）、中文 `研究` 后缀、`YYYYMMDD` 日期、同名目录 `_2`/`_3` 后缀。提供 `resolve` / `slug` / `check` 三个子命令。
+- `validate_report.py` 新增 Output Location 检查：报告不在 `research/<主题>_研究_<YYYYMMDD>/` 内时给出告警并指向 resolver。
+- `tests/test_research_paths.py`（20 用例）与 `tests/test_validate_report.py` 的 Output Location 用例（5 个），覆盖路径穿越防护、中文保留、碰撞后缀与门禁双向行为。
+
 ## [2.6.1] - 2026-10-01
 
 ### Changed

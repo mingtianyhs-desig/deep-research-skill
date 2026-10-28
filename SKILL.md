@@ -8,7 +8,7 @@ depends_on:
   - lov-dev-blog
 metadata:
   author: lovstudio
-  version: "2.6.1"
+  version: "2.7.0"
   tags:
     - deep-research
     - citations
@@ -107,6 +107,7 @@ Mode Selection
 - HTML styling: [mckinsey_report_template.html](./templates/mckinsey_report_template.html)
 
 **Scripts:**
+- `python scripts/research_paths.py resolve --topic "[question]" --create` — resolve the run folder (do this first)
 - `python scripts/validate_report.py --report [path]`
 - `python scripts/verify_citations.py --report [path]`
 - `python scripts/md_to_html.py [markdown_path] --embed-images`
@@ -150,7 +151,7 @@ Mode Selection
 - Bibliography (COMPLETE - every citation, no placeholders)
 - Methodology Appendix
 
-**Output files (all to `~/Documents/[Topic]_Research_[YYYYMMDD]/`):**
+**Output files (all in one run folder, resolved by `scripts/research_paths.py resolve --topic "..." --create`):**
 - Markdown (primary source of truth)
 - `sources.jsonl` — stable source registry with canonical IDs
 - `evidence.jsonl` — append-only evidence store with quotes and locators
@@ -160,6 +161,8 @@ Mode Selection
 - `open_source_solutions.jsonl` — canonical repository registry for applicable implementation/tooling research; one verified repository per line
 - HTML (McKinsey style, self-contained with embedded figures, auto-opened)
 - PDF (professional print, auto-opened)
+
+**Path rule:** resolve the run folder once with `python scripts/research_paths.py resolve --topic "[question]" --create` and reuse the printed path for every script call. The folder is relative to the current working directory (`research/[主题]_研究_[YYYYMMDD]/`), so switching workspaces moves the output with it. Never write to `~`, to the skill install directory, or to any absolute path outside the working tree; `validate_report.py` reports a report that sits outside the convention. See [report-assembly.md](./reference/report-assembly.md) for the workflow.
 
 **Quality standards:**
 - 10+ sources, 3+ per major claim (cluster-independent, not just count)

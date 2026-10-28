@@ -65,5 +65,42 @@ class FigureCheckTests(unittest.TestCase):
         self.assertTrue(any("caption" in w for w in validator.warnings))
 
 
+class OutputLocationCheckTests(unittest.TestCase):
+    def _validator(self, run_dir_name: str, nested_under_research: bool = True):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        base = Path(tmp.name)
+        run_dir = base / "research" / run_dir_name if nested_under_research else base / run_dir_name
+        run_dir.mkdir(parents=True, exist_ok=True)
+        report = run_dir / "report.md"
+        report.write_text(_report("quick", ""))
+        return MODULE.ReportValidator(report)
+
+    def test_conventional_directory_passes_silently(self):
+        validator = self._validator("topic_研究_20261028")
+        self.assertTrue(validator._check_output_location())
+        self.assertFalse(any("research/" in w for w in validator.warnings))
+
+    def test_collision_suffix_still_passes(self):
+        validator = self._validator("topic_研究_20261028_2")
+        self.assertTrue(validator._check_output_location())
+        self.assertFalse(validator.warnings)
+
+    def test_english_suffix_warns(self):
+        validator = self._validator("topic_Research_20261028")
+        self.assertTrue(validator._check_output_location())
+        self.assertTrue(any("研究" in w for w in validator.warnings))
+
+    def test_missing_container_warns(self):
+        validator = self._validator("topic_研究_20261028", nested_under_research=False)
+        self.assertTrue(validator._check_output_location())
+        self.assertTrue(any("research/" in w for w in validator.warnings))
+
+    def test_warning_points_at_resolver(self):
+        validator = self._validator("random_place", nested_under_research=False)
+        validator._check_output_location()
+        self.assertTrue(any("research_paths.py" in w for w in validator.warnings))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -75,6 +75,7 @@ class ReportValidator:
             ("Word Count", self._check_word_count),
             ("Source Count", self._check_source_count),
             ("Broken Links", self._check_broken_references),
+            ("Output Location", self._check_output_location),
             ("Figures", self._check_figures),
         ]
 
@@ -303,6 +304,36 @@ class ReportValidator:
 
         return True
 
+    def _check_output_location(self) -> bool:
+        """Check the report lives in a conventional run directory.
+
+        The path convention is only real if something fails when it is broken.
+        A report sitting outside `research/<topic>_研究_<YYYYMMDD>/` still reads
+        fine, so without this check a misplaced run would pass silently and the
+        next continuation agent would look in the wrong place.
+
+        This warns rather than errors: users legitimately validate a draft
+        before the run folder exists, and a hard failure would block that.
+        """
+        run_dir = self.report_path.parent
+        problems = []
+
+        if run_dir.name != "research" and run_dir.parent.name != "research":
+            problems.append("report is not inside a 'research/' folder")
+
+        if not re.search(r'_研究_\d{8}(_\d+)?$', run_dir.name):
+            problems.append(
+                f"run folder '{run_dir.name}' does not match '<topic>_研究_<YYYYMMDD>'"
+            )
+
+        if problems:
+            self.warnings.append(
+                "; ".join(problems)
+                + ". Resolve the folder with: python scripts/research_paths.py resolve --topic \"...\" --create"
+            )
+
+        return True
+
     def _check_broken_references(self) -> bool:
         """Check for broken internal references"""
         # Find all markdown links [text](./path)
@@ -409,7 +440,7 @@ def main():
         epilog="""
 Examples:
   python validate_report.py --report report.md
-  python validate_report.py -r ~/.claude/research_output/research_report_20251104_153045.md
+  python validate_report.py -r research/PostgreSQL_vs_Supabase_研究_20261028/report.md
         """
     )
 

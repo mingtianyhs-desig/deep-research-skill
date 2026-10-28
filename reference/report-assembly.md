@@ -22,6 +22,19 @@
 
 ---
 
+## Path Convention
+
+Resolve the run directory with the bundled resolver before writing anything:
+
+```bash
+python scripts/research_paths.py resolve --topic "[research question]" --create
+# {"status": "ok", "relative": "research/PostgreSQL_vs_Supabase_研究_20261028", ...}
+```
+
+Use the printed `relative` path verbatim for every later script call. Do not hand-build the folder name: the resolver owns topic sanitisation, the Chinese `研究` suffix, the date, and the `_2`/`_3` collision suffix. A hand-built name drifts from the convention and is reported by the Output Location check in `validate_report.py`.
+
+The folder is relative to the current working directory, so switching workspaces moves the output with it. Never write to `~`, to the skill install directory, or to any absolute path outside the working tree.
+
 ## Progressive Section Generation
 
 **Core Strategy:** Generate and write each section individually using Write/Edit tools. This allows unlimited report length while keeping each generation manageable.
@@ -29,10 +42,10 @@
 ### Phase 8.1: Setup
 
 ```bash
-# Create folder: ~/Documents/[TopicName]_Research_[YYYYMMDD]/
-mkdir -p ~/Documents/[folder_name]
+# Resolve and create the run folder (relative to the current working directory)
+python scripts/research_paths.py resolve --topic "[research question]" --create
 
-# Initialize markdown file with frontmatter
+# Initialize markdown file with frontmatter inside that folder
 # Path: [folder]/research_report_[YYYYMMDD]_[slug].md
 ```
 
@@ -126,8 +139,8 @@ Source identity is stable across edits and continuation. Display numbers are der
 ## File Organization
 
 **1. Create dedicated folder:**
-- Location: `~/Documents/[TopicName]_Research_[YYYYMMDD]/`
-- Clean topic name (remove special chars, use underscores)
+- Run `python scripts/research_paths.py resolve --topic "[question]" --create` and use the returned path
+- The resolver produces `research/[主题]_研究_[YYYYMMDD]/` relative to the current working directory
 
 **2. File naming convention:**
 All files use same base name:
@@ -135,7 +148,7 @@ All files use same base name:
 - `research_report_20251104_topic_slug.html`
 - `research_report_20251104_topic_slug.pdf`
 
-**3. Also save copy to:** `~/.claude/research_output/` (internal tracking)
+**3. Keep everything in that one folder.** The report, `sources.jsonl`, `evidence.jsonl`, `claims.jsonl`, `run_manifest.json`, and `figures/` all live together. Continuation agents and validators resolve artifacts from the report's own folder; a second copy in a global tracking directory only creates ambiguity about which one is authoritative.
 
 ---
 

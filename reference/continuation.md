@@ -18,7 +18,7 @@ Trigger auto-continuation when report exceeds 18,000 words in single run.
 
 ## Continuation State File
 
-**Location:** `~/.claude/research_output/continuation_state_[report_id].json`
+**Location:** `[folder]/continuation_state_[report_id].json` — inside the run folder returned by `scripts/research_paths.py resolve`, next to the report. Keeping the state with the report means a continuation agent resolves everything from one directory, and the state travels with the workspace instead of leaking into a global home directory.
 
 ```json
 {
@@ -79,7 +79,7 @@ Task(
 CONTINUATION TASK: Continue existing deep-research report.
 
 CRITICAL INSTRUCTIONS:
-1. Read continuation state: ~/.claude/research_output/continuation_state_[report_id].json
+1. Read continuation state: [folder]/continuation_state_[report_id].json
 2. Read existing report: [file_path from state]
 3. Read LAST 3 completed sections for flow/style
 4. Load research context: themes, narrative arc, writing style
